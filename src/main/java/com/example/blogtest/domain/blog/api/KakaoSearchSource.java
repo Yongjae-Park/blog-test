@@ -1,7 +1,19 @@
 package com.example.blogtest.domain.blog.api;
 
-import lombok.Getter;
+import com.example.blogtest.domain.blog.dto.BlogSearchResponseDto;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.beans.factory.annotation.Value;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 public class KakaoSearchSource implements SearchBlog {
 
@@ -9,17 +21,52 @@ public class KakaoSearchSource implements SearchBlog {
     private String url;
     @Value("${external.apis.kakao.blog-search-api.api-key}")
     private String restAPIKey;
-
-    private String authorizationValue;
-    private String queryValue;
-    private String sortValue;
+    final private String AUTHORIZATION_KEY = "Authorization";
 
     @Override
-    public String callBlogSearch(String query, String sort, Integer page, Integer size) {
-        return null;
+    public BlogSearchResponseDto callBlogSearch(String query, String sort, Integer page, Integer size) {
+        HttpClient client = HttpClientBuilder.create().build();
+        BlogSearchResponseDto responseBody = null;
+        try {
+            URI uri = createURI(query, sort, page, size);
+            HttpGet getRequest = createHttpGet(uri);
+            HttpResponse response = client.execute(getRequest);
+            responseBody = toDto(response);
+        } catch (URISyntaxException | IOException e) {
+
+        }
+        return responseBody;
     }
 
-    @Getter
+    private HttpGet createHttpGet(URI uri) {
+
+        HttpGet get = new HttpGet();
+        get.setURI(uri);
+        get.addHeader(AUTHORIZATION_KEY, restAPIKey);
+
+        return get;
+    }
+
+    private BlogSearchResponseDto toDto(HttpResponse response) throws IOException {
+        if (response.getStatusLine().getStatusCode() == 200) {
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule());
+
+            return mapper.readValue(
+                    response.getEntity().getContent(), BlogSearchResponseDto.class);
+        }
+        throw new RuntimeException("Http response status is not OK!!");
+    }
+
+    private URI createURI(String query, String sort, Integer page, Integer size) throws URISyntaxException {
+        return new URIBuilder(url)
+                .addParameter(ParameterKeyType.QUERY.getKeyName(), query)
+                .addParameter(ParameterKeyType.SORT.getKeyName(), sort)
+                .addParameter(ParameterKeyType.PAGE.getKeyName(), String.valueOf(page))
+                .addParameter(ParameterKeyType.SIZE.getKeyName(), String.valueOf(size))
+                .build();
+    }
+
     public enum ParameterKeyType {
         QUERY("query"),
         SORT("sort"),

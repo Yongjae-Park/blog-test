@@ -1,22 +1,28 @@
 package com.example.blogtest;
 
+import com.example.blogtest.domain.blog.dto.BlogSearchResponseDto;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.LocalDateTime;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -39,16 +45,20 @@ public class KakaoApiCallTest {
 
     private String sortValue;
 
-    private String authorizationValue;
+    @Autowired
+    ObjectMapper objectMapper;
+
+    private static String PATTERN_DATE = "yyyy-MM-dd";
+    private static String PATTERN_TIME = "HH:mm:ss";
+    private static String PATTERN_DATETIME = String.format("%s %s", PATTERN_DATE, PATTERN_TIME);
 
     @BeforeEach
     void setUp() {
         queryValue = "카카오";
-        authorizationValue = "KakaoAK " + restAPIKey;
         sortValue = "recency";
     }
 
-    @DisplayName("HttpClient 사용하여 블로그검색 api 호출 테스트")
+    @DisplayName("Kakao 블로그 검색 api 호출하여 정상 응답을 받아온다.")
     @Test
     public void kakao_api_call_TEST() throws IOException, URISyntaxException {
         HttpClient client = HttpClientBuilder.create().build();
@@ -65,24 +75,35 @@ public class KakaoApiCallTest {
     private HttpGet createHttpGet(URI uri) {
         HttpGet get = new HttpGet();
         get.setURI(uri);
-        get.addHeader(AUTHORIZATION_KEY, authorizationValue);
+        get.addHeader(AUTHORIZATION_KEY, restAPIKey);
         return get;
     }
 
-    private static void printResponse(HttpResponse response) throws IOException {
+    private void printResponse(HttpResponse response) throws IOException {
         if (response.getStatusLine().getStatusCode() == 200) {
-            ResponseHandler<String> handler = new BasicResponseHandler();
-            String body = handler.handleResponse(response);
-            System.out.println(body);
+            BlogSearchResponseDto res = toDto(response);
+            System.out.println(res);
+            System.out.println(res.toString());
         } else {
             System.out.println("response is error : " + response.getStatusLine().getStatusCode());
         }
+    }
+
+    private BlogSearchResponseDto toDto(HttpResponse response) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+
+        BlogSearchResponseDto dto = mapper.readValue(response.getEntity().getContent(), BlogSearchResponseDto.class);
+        return dto;
     }
 
     private URI createURI() throws URISyntaxException {
         return new URIBuilder(url)
                 .addParameter(PARAM_KEY_QUERY, queryValue)
                 .addParameter(PARAM_KEY_SORT, sortValue)
+                .addParameter(PARAM_KEY_PAGE, "50")
+                .addParameter(PARAM_KEY_SIZE, "50")
                 .build();
     }
+
 }
