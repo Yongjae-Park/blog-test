@@ -23,33 +23,38 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 @SpringBootTest
 public class KakaoApiCallTest {
 
+    @Value("${external.apis.kakao.blog-search-api.url}")
     private String url;
 
-    private String query;
-
-    private String sort;
-
-    private String authorizationKey;
-    @Value("${external.api.api-key}")
+    @Value("${external.apis.kakao.blog-search-api.api-key}")
     private String restAPIKey;
+
+    final private String AUTHORIZATION_KEY = "Authorization";
+    final private String PARAM_KEY_QUERY = "query";
+    final private String PARAM_KEY_SORT = "sort";
+    final private String PARAM_KEY_PAGE = "page";
+    final private String PARAM_KEY_SIZE = "size";
+
+    private String queryValue;
+
+    private String sortValue;
 
     private String authorizationValue;
 
     @BeforeEach
     void setUp() {
-        url = "https://dapi.kakao.com/v2/search/blog";
-        query = "카카오";
-        authorizationKey = "Authorization";
+        queryValue = "카카오";
         authorizationValue = "KakaoAK " + restAPIKey;
-        sort = "recency";
+        sortValue = "recency";
     }
+
     @DisplayName("HttpClient 사용하여 블로그검색 api 호출 테스트")
     @Test
     public void kakao_api_call_TEST() throws IOException, URISyntaxException {
         HttpClient client = HttpClientBuilder.create().build();
         URI uri = createURI();
 
-        HttpGet getRequest = createHttpGet(uri); //KEY 입력
+        HttpGet getRequest = createHttpGet(uri);
         HttpResponse response = client.execute(getRequest);
 
         assertThat(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatus.SC_OK);
@@ -60,7 +65,7 @@ public class KakaoApiCallTest {
     private HttpGet createHttpGet(URI uri) {
         HttpGet get = new HttpGet();
         get.setURI(uri);
-        get.addHeader(authorizationKey, authorizationValue);
+        get.addHeader(AUTHORIZATION_KEY, authorizationValue);
         return get;
     }
 
@@ -76,8 +81,8 @@ public class KakaoApiCallTest {
 
     private URI createURI() throws URISyntaxException {
         return new URIBuilder(url)
-                .addParameter("query", query)
-                .addParameter("sort", sort)
+                .addParameter(PARAM_KEY_QUERY, queryValue)
+                .addParameter(PARAM_KEY_SORT, sortValue)
                 .build();
     }
 }

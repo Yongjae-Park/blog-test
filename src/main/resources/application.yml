@@ -18,6 +18,8 @@ logging.level:
   org.hibernate.SQL: debug
 
 external:
-  api:
-    name: kakao
-    api-key: 05688d38d8ddb251505f898072f0dc1d
+  apis:
+    kakao:
+      blog-search-api:
+        url: https://dapi.kakao.com/v2/search/blog
+        api-key: 05688d38d8ddb251505f898072f0dc1d
