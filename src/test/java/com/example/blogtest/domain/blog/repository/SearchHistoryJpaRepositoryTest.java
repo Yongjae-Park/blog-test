@@ -87,8 +87,6 @@ class SearchHistoryJpaRepositoryTest {
     public void findTop10ByOrderBySearchCountDesc_count_Test() {
         createHistories(30);
 
-        searchHistoryJpaRepository.saveAll(histories);
-        
         List<SearchBlogHistory> histories = searchHistoryJpaRepository.findTop10ByOrderBySearchCountDesc();
 
         assertThat(histories.size()).isEqualTo(10);
@@ -111,6 +109,7 @@ class SearchHistoryJpaRepositoryTest {
         for (int i = 0; i < tc; i++) {
             createHistory("kakao" + i, 0L + i);
         }
+        searchHistoryJpaRepository.saveAll(histories);
     }
 
     private SearchBlogHistory createHistory(String keyword, Long count) {
