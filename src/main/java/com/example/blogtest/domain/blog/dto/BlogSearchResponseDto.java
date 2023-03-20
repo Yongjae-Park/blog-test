@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -20,7 +21,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 @ToString
-public class BlogSearchResponseDto {
+public class BlogSearchResponseDto implements Serializable {
 
     private List<Document> documents;
     private PageNationData meta;
@@ -28,13 +29,13 @@ public class BlogSearchResponseDto {
     @Getter
     @NoArgsConstructor
     @ToString
-    public static class Document {
+    public static class Document implements Serializable{
         private String blogname;
         private String contents;
 
         @JsonDeserialize(using = LocalDateTimeDeserializer.class)
         @JsonSerialize(using = LocalDateTimeSerializer.class)
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS+09:00")
         private LocalDateTime datetime;
         private String thumbnail;
         private String title;
@@ -43,7 +44,7 @@ public class BlogSearchResponseDto {
     @Getter
     @NoArgsConstructor
     @ToString
-    public static class PageNationData {
+    public static class PageNationData implements Serializable{
         private Boolean is_end;
         private Long pageable_count;
         private Long total_count;
