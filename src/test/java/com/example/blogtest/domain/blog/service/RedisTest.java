@@ -1,4 +1,4 @@
-package com.example.blogtest.domain.blog.api;
+package com.example.blogtest.domain.blog.service;
 
 import com.example.blogtest.domain.blog.api.SearchBlog;
 import org.junit.jupiter.api.BeforeEach;
