@@ -37,7 +37,7 @@ public class SearchBlogService {
         } else {
             SearchBlogHistory history = SearchBlogHistory.builder()
                     .keyword(query)
-                    .searchCount(0L)
+                    .searchCount(1L)
                     .build();
 
             searchHistoryJpaRepository.save(history);
