@@ -3,10 +3,7 @@ package com.example.blogtest.domain.blog.entity;
 import lombok.Builder;
 import lombok.Getter;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Version;
+import javax.persistence.*;
 
 @Entity
 @Getter
@@ -15,6 +12,7 @@ public class SearchBlogHistory {
     @GeneratedValue
     private Long id;
 
+    @Column(unique = true)
     private String keyword;
 
     private Long searchCount;
