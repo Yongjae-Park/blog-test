@@ -2,7 +2,6 @@ package com.example.blogtest.domain.blog.api;
 
 import com.example.blogtest.domain.blog.dto.BlogSearchResponseDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -10,6 +9,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 
 import java.io.IOException;
 import java.net.URI;
@@ -24,16 +24,18 @@ public class KakaoSearchSource implements SearchBlog {
     final private String AUTHORIZATION_KEY = "Authorization";
 
     @Override
+    @Cacheable(cacheNames = "kakaoBlogSearchApiCache", key = "#query + #page + #size")
     public BlogSearchResponseDto callBlogSearch(String query, String sort, Integer page, Integer size) {
-        HttpClient client = HttpClientBuilder.create().build();
+        System.out.println("not cache");
         BlogSearchResponseDto responseBody = null;
         try {
+            HttpClient client = HttpClientBuilder.create().build();
             URI uri = createURI(query, sort, page, size);
             HttpGet getRequest = createHttpGet(uri);
             HttpResponse response = client.execute(getRequest);
             responseBody = toDto(response);
-        } catch (URISyntaxException | IOException e) {
-
+        }catch (URISyntaxException | IOException e) {
+            e.printStackTrace();
         }
         return responseBody;
     }
