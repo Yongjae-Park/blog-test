@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StopWatch;
 
 @SpringBootTest
+@Transactional
 public class RedisTest {
 
     @Autowired
