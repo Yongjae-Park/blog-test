@@ -7,7 +7,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,9 +31,9 @@ class SearchBlogServiceTest {
 
     private List<SearchBlogHistory> histories = new ArrayList<>();
 
-    @DisplayName("동시성 테스트 - 100개의 스레드가 동시에 검색 서비스 호출시 검색 히스토리의 검색카운트가 호출 수 만큼 증가한다.")
+    @DisplayName("동시성 테스트 - from order by desc : 100개의 스레드가 동시에 검색 서비스 호출시 검색 히스토리의 searchCount가 호출 수 만큼 증가한다.")
     @Test
-    public void SimultaneousDepositPassWithNoRaceCondition() throws InterruptedException {
+    public void SimultaneousBlogSearch_fromOrderByDESC_Test() throws InterruptedException {
         createHistory();
 
         CountDownLatch latch = new CountDownLatch(100);
@@ -52,6 +51,25 @@ class SearchBlogServiceTest {
         assertThat(history.getSearchCount()).isEqualTo(101);
     }
 
+    @DisplayName("동시성 테스트 - from redis cache : 100개의 스레드가 동시에 검색 서비스 호출시 검색 히스토리의 검색카운트가 호출 수 만큼 증가한다.")
+    @Test
+    public void SimultaneousBlogSearch_fromRedisCache_Test() throws InterruptedException {
+        createHistory();
+
+        CountDownLatch latch = new CountDownLatch(100);
+
+        for (int i = 0; i < 100; i++) {
+            service.execute(() -> {
+                searchBlogService.search("카카오", "recency", 1, 1);
+                latch.countDown();
+            });
+        }
+
+        latch.await();
+        PopularSearchKeywordResponseDto dto = searchBlogService.getPopularKeywords();
+        assertThat(dto.getPopularKeywords().get(0).getSearchCount()).isEqualTo(101);
+    }
+
     private void createHistory() {
         SearchBlogHistory history = SearchBlogHistory.builder()
                 .keyword("카카오")
@@ -64,13 +82,14 @@ class SearchBlogServiceTest {
 
     @DisplayName("인기 검색어 조회후 PopularSearchKeywordResponseDto로 랩핑하여 사이즈 값을 확인한다.")
     @Test
-    @Transactional
     public void getPopularKeyword_Test() {
+        int initSize = searchHistoryJpaRepository.findAll().size();
+
         int size = 8;
         createHistories(8);
         PopularSearchKeywordResponseDto res = searchBlogService.getPopularKeywords();
 
-        assertThat(res.getPopularKeywords().size()).isEqualTo(size);
+        assertThat(res.getDataSize()).isEqualTo(size + initSize);
     }
 
     private void createHistories(int tc) {
@@ -88,4 +107,5 @@ class SearchBlogServiceTest {
         histories.add(history);
         return history;
     }
+
 }
