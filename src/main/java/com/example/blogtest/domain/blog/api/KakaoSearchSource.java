@@ -24,16 +24,15 @@ public class KakaoSearchSource implements SearchBlog {
     final private String AUTHORIZATION_KEY = "Authorization";
 
     @Override
-    @Cacheable(cacheNames = "kakaoBlogSearchApiCache", key = "#query + #page + #size")
+    @Cacheable(cacheNames = "kakaoBlogSearchApiCache", key = "#query + #sort + #page + #size")
     public BlogSearchResponseDto callBlogSearch(String query, String sort, Integer page, Integer size) {
-        System.out.println("not cache");
         BlogSearchResponseDto responseBody = null;
         try {
             HttpClient client = HttpClientBuilder.create().build();
             URI uri = createURI(query, sort, page, size);
             HttpGet getRequest = createHttpGet(uri);
             HttpResponse response = client.execute(getRequest);
-            responseBody = toDto(response);
+            responseBody = toBlogSearchResponseDto(response);
         }catch (URISyntaxException | IOException e) {
             e.printStackTrace();
         }
@@ -49,7 +48,7 @@ public class KakaoSearchSource implements SearchBlog {
         return get;
     }
 
-    private BlogSearchResponseDto toDto(HttpResponse response) throws IOException {
+    private BlogSearchResponseDto toBlogSearchResponseDto(HttpResponse response) throws IOException {
         if (response.getStatusLine().getStatusCode() == 200) {
             ObjectMapper mapper = new ObjectMapper();
             mapper.registerModule(new JavaTimeModule());

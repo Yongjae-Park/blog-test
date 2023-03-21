@@ -7,6 +7,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,13 +37,15 @@ class SearchBlogServiceTest {
     @DisplayName("동시성 테스트 - from order by desc : 100개의 스레드가 동시에 검색 서비스 호출시 검색 히스토리의 searchCount가 호출 수 만큼 증가한다.")
     @Test
     public void SimultaneousBlogSearch_fromOrderByDESC_Test() throws InterruptedException {
-        createHistory();
+        String keyword = "카카오뱅크";
+        createHistory(keyword);
 
         CountDownLatch latch = new CountDownLatch(100);
+        Pageable pageRequest = PageRequest.of(1, 1, Sort.by(Sort.Order.by("recency")));
 
         for (int i = 0; i < 100; i++) {
             service.execute(() -> {
-                searchBlogService.search("카카오", "recency", 1, 1);
+                searchBlogService.search(keyword, pageRequest);
                 latch.countDown();
             });
         }
@@ -54,13 +59,14 @@ class SearchBlogServiceTest {
     @DisplayName("동시성 테스트 - from redis cache : 100개의 스레드가 동시에 검색 서비스 호출시 검색 히스토리의 검색카운트가 호출 수 만큼 증가한다.")
     @Test
     public void SimultaneousBlogSearch_fromRedisCache_Test() throws InterruptedException {
-        createHistory();
+        String keyword = "카카오";
+        createHistory(keyword);
 
         CountDownLatch latch = new CountDownLatch(100);
-
+        Pageable pageRequest = PageRequest.of(1, 1, Sort.by(Sort.Order.by("recency")));
         for (int i = 0; i < 100; i++) {
             service.execute(() -> {
-                searchBlogService.search("카카오", "recency", 1, 1);
+                searchBlogService.search(keyword, pageRequest);
                 latch.countDown();
             });
         }
@@ -70,9 +76,9 @@ class SearchBlogServiceTest {
         assertThat(dto.getPopularKeywords().get(0).getSearchCount()).isEqualTo(101);
     }
 
-    private void createHistory() {
+    private void createHistory(String keyword) {
         SearchBlogHistory history = SearchBlogHistory.builder()
-                .keyword("카카오")
+                .keyword(keyword)
                 .searchCount(1L)
                 .build();
 
