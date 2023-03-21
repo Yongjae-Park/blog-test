@@ -6,25 +6,24 @@ import com.example.blogtest.domain.blog.service.SearchBlogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-import java.io.IOException;
-import java.net.URISyntaxException;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/blog")
+@Validated
 public class SearchBlogController {
 
     final private SearchBlogService searchService;
 
     @GetMapping("/search")
-    public Page<BlogSearchResponseDto.Document> getSearch(@RequestParam @NotNull String query,
-                                         Pageable pageRequest) {
-        Page<BlogSearchResponseDto.Document> result = searchService.search(query, pageRequest);
-        return result;
+    public Page<BlogSearchResponseDto.Document> getBlogSearchResult(@RequestParam @NotNull @NotEmpty String query,
+                                         Pageable pageable) {
+        return searchService.search(query, pageable);
     }
 
     @GetMapping("/popular_keyword/from_db")
