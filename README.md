@@ -33,4 +33,4 @@
 ## jar파일 다운로드
    * 다운로드 링크
      * github : https://github.com/Yongjae-Park/blog-test/raw/dev/buildjar/blog-test-0.0.1.jar
-     * google drice: https://drive.google.com/file/d/18gDkAsEofk3pAAEbSqF97WopdB9gTXVA/view?usp=sharing
+     * google drive: https://drive.google.com/file/d/12c3rurClTZOxfnPKKmJEo0diyTj4ecE0/view?usp=share_link
