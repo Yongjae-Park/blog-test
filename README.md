@@ -25,10 +25,10 @@
 2. openapi 추가
    * swagger test위한 디펜던시 추가
 ## h2 DB datasource 정보
-    url: jdbc:h2:tcp://localhost/~/blog-test
+    url: jdbc:h2:mem:testdb
     username: sa
-    password:
-    driver-class-name: org.h2.Driver
+## h2 DB console 접속 정보
+    path: /h2-console
 
 ## jar파일 다운로드
    * 다운로드 링크
